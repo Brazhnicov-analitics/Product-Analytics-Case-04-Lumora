@@ -1,1 +1,64 @@
+-- Создание таблицы sales_data
+DROP TABLE IF EXISTS sales_data;
+CREATE TABLE sales_data (
+    sku TEXT,
+    category TEXT,
+    price REAL,
+    quantity_sold INTEGER,
+    date_sold DATE,
+    initial_stock INTEGER,
+    current_stock INTEGER,
+    region TEXT
+);
+-- Вставка данных (пример)
+INSERT INTO sales_data (sku, category, price, quantity_sold, date_sold, initial_stock, current_stock, region)
+VALUES ('SKU001', 'textile', 10.00, 200, '2024-12-15', 300, 100, 'Moscow');
 
+-- Общая выручка по SKU (последняя запись)
+DROP TABLE IF EXISTS revenue_by_sku;
+CREATE TABLE revenue_by_sku AS
+SELECT sku, category, price, quantity_sold, (price * quantity_sold) AS total_revenue
+FROM sales_data
+WHERE (sku, date_sold) IN (SELECT sku, MAX(date_sold) FROM sales_data GROUP BY sku);
+
+-- ABC-анализ: Распределение выручки
+DROP TABLE IF EXISTS abc_analysis;
+CREATE TABLE abc_analysis AS
+WITH ranked_revenue AS (
+    SELECT sku, category, total_revenue, (SUM(total_revenue) OVER (ORDER BY total_revenue DESC) / SUM(total_revenue) OVER ()) * 100 AS cumulative_percentage
+    FROM revenue_by_sku
+)
+SELECT sku, category, total_revenue, cumulative_percentage,
+    CASE WHEN cumulative_percentage <= 80 THEN 'A' ELSE 'B' END AS abc_category
+FROM ranked_revenue ORDER BY total_revenue DESC;
+
+-- XYZ-анализ: Стабильность продаж
+DROP TABLE IF EXISTS xyz_analysis;
+CREATE TABLE xyz_analysis AS
+WITH monthly_sales AS (
+    SELECT sku, category, strftime('%Y-%m', date_sold) AS month, SUM(quantity_sold) AS monthly_quantity
+    FROM sales_data GROUP BY sku, category, strftime('%Y-%m', date_sold)
+)
+SELECT sku, category, AVG(monthly_quantity) AS mean_quantity,
+    CASE WHEN (STDDEV(monthly_quantity) / AVG(monthly_quantity)) * 100 <= 10 THEN 'X' ELSE 'Y' END AS xyz_category
+FROM monthly_sales GROUP BY sku, category;
+
+-- Оборачиваемость товаров
+DROP TABLE IF EXISTS turnover_analysis;
+CREATE TABLE turnover_analysis AS
+SELECT sku, category, initial_stock, current_stock, SUM(quantity_sold) AS total_sold,
+    (julianday('2025-06-07') - julianday(MIN(date_sold))) AS days_active,
+    ROUND((initial_stock / (SUM(quantity_sold) / days_active)), 2) AS turnover_days
+FROM sales_data GROUP BY sku, category, initial_stock, current_stock;
+
+-- Сегментация товаров
+DROP TABLE IF EXISTS sku_segmentation;
+CREATE TABLE sku_segmentation AS
+SELECT a.sku, a.category, a.abc_category, x.xyz_category, t.turnover_days,
+    CASE WHEN a.abc_category = 'C' AND x.xyz_category = 'Y' AND t.turnover_days > 90 THEN 'Inefficient' ELSE 'Efficient' END AS efficiency_status
+FROM abc_analysis a
+JOIN xyz_analysis x ON a.sku = x.sku
+JOIN turnover_analysis t ON a.sku = t.sku;
+
+-- Просмотр результатов сегментации
+SELECT * FROM sku_segmentation ORDER BY sku;
