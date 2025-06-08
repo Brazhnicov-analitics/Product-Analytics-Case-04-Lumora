@@ -1,0 +1,11 @@
+sku,category,abc_category,xyz_category,turnover_days,total_stock,efficiency_status
+SKU001,textile,B,Z,126.1,400,Efficient
+SKU002,decor,A,Y,131.78,250,Efficient
+SKU003,dishes,A,Y,112.03,520,Efficient
+SKU004,furniture,A,Y,139.21,170,Efficient
+SKU005,textile,A,Y,125.28,440,Efficient
+SKU006,decor,B,Y,146.47,210,Efficient
+SKU007,dishes,A,X,110.36,550,Efficient
+SKU008,furniture,B,Y,185.76,135,Efficient
+SKU009,textile,A,Y,124.42,400,Efficient
+SKU010,decor,C,Y,159.24,200,Efficient

@@ -1,0 +1,11 @@
+sku,category,price,quantity_sold,total_revenue
+SKU001,textile,18.0,140,2520.0
+SKU002,decor,32.0,85,2720.0
+SKU003,dishes,22.0,220,4840.0
+SKU004,furniture,130.0,35,4550.0
+SKU005,textile,20.0,160,3200.0
+SKU006,decor,40.0,55,2200.0
+SKU007,dishes,25.0,260,6500.0
+SKU008,furniture,100.0,19,1900.0
+SKU009,textile,18.0,150,2700.0
+SKU010,decor,38.0,45,1710.0
